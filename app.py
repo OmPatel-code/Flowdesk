@@ -1946,23 +1946,9 @@ def init_db():
             print("  User:  username=user   password=User@123456!")
             print("="*50 + "\n")
 
-# Always initialize DB and scheduler — works with both gunicorn and python app.py
-init_db()
-
-_scheduler = None
-if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-    # Only start scheduler once (not in Flask reloader child process)
-    _scheduler = start_scheduler()
-    print("[OK] Scheduler started")
-
 if __name__ == '__main__':
+    init_db()
+    start_scheduler()
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV') != 'production'
     print(f"Server starting at http://0.0.0.0:{port}")
-    try:
-        app.run(host='0.0.0.0', port=port, debug=debug)
-    except KeyboardInterrupt:
-        print("Shutting down...")
-        if _scheduler:
-            _scheduler.shutdown()
-        print("Done")
+    app.run(host='0.0.0.0', port=port, debug=True)
