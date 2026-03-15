@@ -1948,15 +1948,16 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    
-    # Start email scheduler
+
     scheduler = start_scheduler()
-    print("📧 Email scheduler started - Deadline reminders and monthly analytics enabled")
-    
-    print("Server starting at http://127.0.0.1:5000")
+    print("[OK] Email scheduler started")
+
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    print(f"Server starting at http://0.0.0.0:{port}")
     try:
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=port, debug=debug)
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down scheduler...")
+        print("Shutting down scheduler...")
         scheduler.shutdown()
-        print("✅ Scheduler stopped")
+        print("Done")
