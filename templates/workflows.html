@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Workflows — FlowDesk{% endblock %}
+{% block page_title %}Workflows{% endblock %}
+{% block content %}
+<div class="ph">
+  <div><h1>Workflows</h1><p>Manage and track all your workflows</p></div>
+  <div style="display:flex;gap:8px">
+    <a href="/workflows/export" class="btn btn-g btn-sm"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</a>
+    <a href="/workflow/create" class="btn btn-p btn-sm"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Workflow</a>
+  </div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center">
+  <form method="GET" style="display:contents">
+    <div style="position:relative;min-width:200px;flex:1;max-width:300px">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="q" value="{{search_q or ''}}" placeholder="Search workflows…" class="fc" style="padding-left:30px">
+    </div>
+    <select name="status" class="fc" style="width:auto">
+      <option value="">All statuses</option>
+      {% for s in statuses %}<option value="{{s}}" {% if current_status==s %}selected{% endif %}>{{s}}</option>{% endfor %}
+    </select>
+    <select name="priority" class="fc" style="width:auto">
+      <option value="">All priorities</option>
+      {% for p in priorities %}<option value="{{p}}" {% if current_priority==p %}selected{% endif %}>{{p}}</option>{% endfor %}
+    </select>
+    <select name="category" class="fc" style="width:auto">
+      <option value="">All categories</option>
+      {% for c in categories %}<option value="{{c}}" {% if current_category==c %}selected{% endif %}>{{c}}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-g btn-sm">Filter</button>
+    <a href="/workflows" class="btn btn-g btn-sm">Reset</a>
+  </form>
+</div>
+
+{% if view_filter=='overdue' %}<div style="padding:8px 14px;background:var(--err-bg);border:1px solid rgba(244,63,94,.2);border-radius:8px;color:var(--err);font-size:.82rem;margin-bottom:12px">Showing overdue workflows only</div>{% endif %}
+
+<div class="tw">
+  <table>
+    <thead><tr>
+      <th>Title</th><th>Status</th><th>Priority</th><th>Category</th><th>Due Date</th><th>Assigned</th><th>Updated</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for wf in workflows %}
+    <tr {% if wf.is_overdue() %}style="border-left:2px solid var(--err)"{% endif %}>
+      <td><a href="/workflow/{{wf.id}}" class="tdl">{{wf.title}}</a>{% if wf.is_overdue() %}<span style="font-size:.65rem;color:var(--err);margin-left:6px;font-weight:600">OVERDUE</span>{% endif %}</td>
+      <td><span class="bx {% if wf.status=='Completed' %}b-co{% elif wf.status=='In Progress' %}b-ip{% elif wf.status=='Cancelled' %}b-ca{% else %}b-cr{% endif %}">{{wf.status}}</span></td>
+      <td><span class="bx {% if wf.priority=='Critical' %}b-ex{% elif wf.priority=='High' %}b-hi{% elif wf.priority=='Medium' %}b-me{% else %}b-lo{% endif %}">{{wf.priority}}</span></td>
+      <td>{{wf.category or '—'}}</td>
+      <td style="white-space:nowrap">{{wf.due_date.strftime('%b %d, %Y') if wf.due_date else '—'}}</td>
+      <td>{{wf.assignee.username if wf.assignee else '—'}}</td>
+      <td style="white-space:nowrap;color:var(--tx3)">{{wf.updated_at.strftime('%b %d') if wf.updated_at else '—'}}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <a href="/workflow/{{wf.id}}" class="btn btn-g btn-sm" style="padding:4px 8px">View</a>
+          <form method="POST" action="/workflow/{{wf.id}}/delete" onsubmit="return confirm('Delete this workflow?')" style="display:inline">
+            <button type="submit" class="btn btn-d btn-sm" style="padding:4px 8px">Del</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8"><div class="es"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><h3>No workflows found</h3><p>Try adjusting your filters or create a new workflow</p></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pagination and pagination.pages > 1 %}
+<div class="pg">
+  <a href="?page={{pagination.prev_num}}&q={{search_q}}&status={{current_status or ''}}&priority={{current_priority or ''}}&category={{current_category or ''}}" class="pl {% if not pagination.has_prev %}off{% endif %}">‹</a>
+  {% for p in pagination.iter_pages(left_edge=1,right_edge=1,left_current=2,right_current=2) %}
+    {% if p %}<a href="?page={{p}}&q={{search_q}}&status={{current_status or ''}}&priority={{current_priority or ''}}&category={{current_category or ''}}" class="pl {% if p==pagination.page %}on{% endif %}">{{p}}</a>
+    {% else %}<span class="pl" style="opacity:.3">…</span>{% endif %}
+  {% endfor %}
+  <a href="?page={{pagination.next_num}}&q={{search_q}}&status={{current_status or ''}}&priority={{current_priority or ''}}&category={{current_category or ''}}" class="pl {% if not pagination.has_next %}off{% endif %}">›</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Automation — FlowDesk{% endblock %}
+{% block page_title %}Automation Rules{% endblock %}
+{% block content %}
+<div class="ph">
+  <div><h1>Automation</h1><p>Auto-trigger actions on workflow events</p></div>
+  <a href="/automation/new" class="btn btn-p btn-sm"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Rule</a>
+</div>
+{% if automations %}
+<div class="tw"><table>
+  <thead><tr><th>Name</th><th>Trigger</th><th>Action</th><th>Status</th><th>Created</th><th></th></tr></thead>
+  <tbody>
+  {% for a in automations %}
+  <tr>
+    <td class="tdp">{{a.name}}</td>
+    <td><span class="tag">{{a.trigger_type}}</span></td>
+    <td><span class="tag">{{a.action_type}}</span></td>
+    <td><span class="bx {% if a.is_active %}b-co{% else %}b-ca{% endif %}">{% if a.is_active %}Active{% else %}Paused{% endif %}</span></td>
+    <td style="color:var(--tx3);white-space:nowrap">{{a.created_at.strftime('%b %d, %Y') if a.created_at else ''}}</td>
+    <td>
+      <div style="display:flex;gap:4px">
+        <a href="/automation/{{a.id}}/edit" class="btn btn-g btn-sm" style="padding:4px 8px">Edit</a>
+        <form method="POST" action="/automation/{{a.id}}/toggle" style="display:inline"><button type="submit" class="btn btn-g btn-sm" style="padding:4px 8px">{% if a.is_active %}Pause{% else %}Resume{% endif %}</button></form>
+        <form method="POST" action="/automation/{{a.id}}/delete" onsubmit="return confirm('Delete this rule?')" style="display:inline"><button type="submit" class="btn btn-d btn-sm" style="padding:4px 8px">Del</button></form>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="es"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><h3>No automation rules</h3><p>Create rules to automatically update statuses, assign workflows, or send notifications</p><a href="/automation/new" class="btn btn-p btn-sm" style="margin-top:6px">Create First Rule</a></div>
+{% endif %}
+{% endblock %}

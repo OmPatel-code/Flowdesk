@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Users — FlowDesk{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block content %}
+<div class="ph">
+  <div><h1>Users</h1><p>{{users|length}} registered accounts</p></div>
+  <a href="/user/create" class="btn btn-p btn-sm"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New User</a>
+</div>
+<div class="tw"><table>
+  <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Last Login</th><th></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+  <tr>
+    <td><div style="display:flex;align-items:center;gap:9px"><div class="av" style="width:26px;height:26px;font-size:.72rem">{{(u.username or 'U')[0].upper()}}</div><span class="tdp">{{u.username}}</span></div></td>
+    <td style="color:var(--tx3)">{{u.email or '—'}}</td>
+    <td><span class="bx {% if u.role=='Admin' %}b-ip{% else %}b-lo{% endif %}">{{u.role}}</span></td>
+    <td><span class="bx {% if u.is_active %}b-co{% else %}b-ca{% endif %}">{% if u.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+    <td style="color:var(--tx3);white-space:nowrap">{{u.created_at.strftime('%b %d, %Y') if u.created_at else '—'}}</td>
+    <td style="color:var(--tx3);white-space:nowrap">{{u.last_login.strftime('%b %d') if u.last_login else '—'}}</td>
+    <td>
+      <div style="display:flex;gap:4px">
+        <a href="/user/{{u.id}}/edit" class="btn btn-g btn-sm" style="padding:4px 8px">Edit</a>
+        <form method="POST" action="/user/{{u.id}}/toggle" style="display:inline"><button type="submit" class="btn btn-g btn-sm" style="padding:4px 8px">{% if u.is_active %}Deact{% else %}Activ{% endif %}</button></form>
+        <form method="POST" action="/user/{{u.id}}/delete" onsubmit="return confirm('Delete user {{u.username}}?')" style="display:inline"><button type="submit" class="btn btn-d btn-sm" style="padding:4px 8px">Del</button></form>
+      </div>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7"><div class="es"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h3>No users found</h3></div></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

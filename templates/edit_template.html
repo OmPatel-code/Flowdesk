@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{% if template %}Edit{% else %}New{% endif %} Template — FlowDesk{% endblock %}
+{% block page_title %}{% if template %}Edit{% else %}New{% endif %} Template{% endblock %}
+{% block content %}
+<div class="ph"><div><h1>{% if template %}Edit Template{% else %}New Template{% endif %}</h1></div><a href="/templates" class="btn btn-g btn-sm">← Back</a></div>
+<form method="POST" style="max-width:680px">
+  <div class="fs">
+    <div class="fst">Template Details</div>
+    <div class="fg"><label>Name *</label><input type="text" name="name" class="fc" value="{{template.name if template else ''}}" placeholder="e.g. Bug Report" required></div>
+    <div class="fg"><label>Description</label><textarea name="description" class="fc" placeholder="What is this template for?">{{template.description if template else ''}}</textarea></div>
+    <div class="fr">
+      <div class="fg" style="margin-bottom:0"><label>Priority</label>
+        <select name="priority" class="fc">{% for p in priorities %}<option value="{{p}}" {% if template and template.priority==p %}selected{% elif not template and p=='Medium' %}selected{% endif %}>{{p}}</option>{% endfor %}</select>
+      </div>
+      <div class="fg" style="margin-bottom:0"><label>Category</label>
+        <select name="category" class="fc"><option value="">— None —</option>{% for c in categories %}<option value="{{c}}" {% if template and template.category==c %}selected{% endif %}>{{c}}</option>{% endfor %}</select>
+      </div>
+    </div>
+  </div>
+  <div class="fs">
+    <div class="fst">Options</div>
+    <div class="fg"><label>Estimated Hours</label><input type="number" name="estimated_hours" class="fc" step="0.5" min="0" value="{{template.estimated_hours if template and template.estimated_hours else ''}}" placeholder="e.g. 4"></div>
+    <div class="fg"><label>Tags <span style="color:var(--tx3)">(comma-separated)</span></label><input type="text" name="tags" class="fc" value="{{template.get_tags()|join(', ') if template else ''}}" placeholder="e.g. frontend, bug, urgent"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <input type="checkbox" name="is_public" id="is_public" {% if template and template.is_public %}checked{% endif %} style="width:16px;height:16px;accent-color:var(--ac)">
+      <label for="is_public" style="margin-bottom:0;cursor:pointer">Make this template public (visible to all users)</label>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px"><button type="submit" class="btn btn-p">{% if template %}Save Changes{% else %}Create Template{% endif %}</button><a href="/templates" class="btn btn-g">Cancel</a></div>
+</form>
+{% endblock %}

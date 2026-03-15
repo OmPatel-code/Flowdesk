@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Edit User — FlowDesk{% endblock %}
+{% block page_title %}Edit User{% endblock %}
+{% block content %}
+<div class="ph"><div><h1>Edit User</h1><p>{{user.username}}</p></div><a href="/users" class="btn btn-g btn-sm">← Back</a></div>
+<form method="POST" style="max-width:520px">
+  <div class="fs">
+    <div class="fst">Account Details</div>
+    <div class="fg"><label>Username *</label><input type="text" name="username" class="fc" value="{{user.username}}" required></div>
+    <div class="fg"><label>Email</label><input type="email" name="email" class="fc" value="{{user.email or ''}}"></div>
+    <div class="fg"><label>New Password <span style="color:var(--tx3)">(leave blank to keep current)</span></label><input type="password" name="password" class="fc" placeholder="Leave blank to keep current"></div>
+    <div class="fg" style="margin-bottom:0"><label>Role</label>
+      <select name="role" class="fc">{% for r in roles %}<option value="{{r}}" {% if user.role==r %}selected{% endif %}>{{r}}</option>{% endfor %}</select>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px"><button type="submit" class="btn btn-p">Save Changes</button><a href="/users" class="btn btn-g">Cancel</a></div>
+</form>
+{% endblock %}

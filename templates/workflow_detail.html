@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}{{workflow.title}} — FlowDesk{% endblock %}
+{% block page_title %}Workflow Detail{% endblock %}
+{% block content %}
+<div class="ph">
+  <div>
+    <h1 style="max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{workflow.title}}</h1>
+    <p>Created by {{workflow.creator.username if workflow.creator else 'Unknown'}} · {{workflow.created_at.strftime('%b %d, %Y') if workflow.created_at else ''}}</p>
+  </div>
+  <a href="/workflows" class="btn btn-g btn-sm">← Back</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:16px">
+  <div>
+    <!-- Update form -->
+    <div class="fs">
+      <div class="fst">Update Workflow</div>
+      <form method="POST" action="/workflow/{{workflow.id}}/update" enctype="multipart/form-data">
+        <div class="fr" style="margin-bottom:14px">
+          <div class="fg" style="margin-bottom:0"><label>Status</label>
+            <select name="status" class="fc">{% for s in statuses %}<option value="{{s}}" {% if workflow.status==s %}selected{% endif %}>{{s}}</option>{% endfor %}</select>
+          </div>
+          <div class="fg" style="margin-bottom:0"><label>Priority</label>
+            <select name="priority" class="fc">{% for p in priorities %}<option value="{{p}}" {% if workflow.priority==p %}selected{% endif %}>{{p}}</option>{% endfor %}</select>
+          </div>
+        </div>
+        <div class="fr" style="margin-bottom:14px">
+          <div class="fg" style="margin-bottom:0"><label>Category</label>
+            <select name="category" class="fc"><option value="">— None —</option>{% for c in categories %}<option value="{{c}}" {% if workflow.category==c %}selected{% endif %}>{{c}}</option>{% endfor %}</select>
+          </div>
+          <div class="fg" style="margin-bottom:0"><label>Due Date</label>
+            <input type="date" name="due_date" class="fc" value="{{workflow.due_date.strftime('%Y-%m-%d') if workflow.due_date else ''}}">
+          </div>
+        </div>
+        <div class="fg"><label>New Attachment</label><input type="file" name="attachment" class="fc" style="padding:7px 11px"></div>
+        <button type="submit" class="btn btn-p btn-sm">Save Changes</button>
+      </form>
+    </div>
+
+    <!-- Description -->
+    {% if workflow.description %}
+    <div class="card" style="margin-bottom:14px">
+      <div class="ch"><span class="ct">Description</span></div>
+      <p style="color:var(--tx2);font-size:.875rem;line-height:1.65;white-space:pre-wrap">{{workflow.description}}</p>
+    </div>
+    {% endif %}
+
+    <!-- Comments -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="ch"><span class="ct">Comments ({{comments|length}})</span></div>
+      {% if comments %}
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+        {% for c in comments %}
+        <div style="padding:10px 13px;background:var(--sur2);border:1px solid var(--bdr);border-radius:9px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div class="av" style="width:24px;height:24px;font-size:.65rem">{{(c.author.username or 'U')[0].upper()}}</div>
+            <span style="font-size:.8rem;font-weight:600;color:var(--tx)">{{c.author.username if c.author else 'Unknown'}}</span>
+            <span style="font-size:.72rem;color:var(--tx3)">{{c.created_at.strftime('%b %d, %H:%M') if c.created_at else ''}}</span>
+          </div>
+          <p style="font-size:.855rem;color:var(--tx2);line-height:1.55">{{c.body}}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <form method="POST" action="/workflow/{{workflow.id}}/comment">
+        <div class="fg"><textarea name="body" class="fc" placeholder="Write a comment…" rows="3" required></textarea></div>
+        <button type="submit" class="btn btn-p btn-sm">Post Comment</button>
+      </form>
+    </div>
+
+    <!-- Activity log -->
+    <div class="card">
+      <div class="ch"><span class="ct">Activity Log</span></div>
+      {% if logs %}
+      <div style="display:flex;flex-direction:column;gap:0">
+        {% for log in logs %}
+        <div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--bdr)">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--ac);margin-top:6px;flex-shrink:0"></div>
+          <div style="flex:1">
+            <span style="font-size:.82rem;color:var(--tx);font-weight:500">{{log.action}}</span>
+            {% if log.old_status and log.new_status %}<span style="font-size:.78rem;color:var(--tx3)"> · {{log.old_status}} → {{log.new_status}}</span>{% endif %}
+            {% if log.details %}<span style="font-size:.78rem;color:var(--tx3)"> · {{log.details}}</span>{% endif %}
+            <div style="font-size:.7rem;color:var(--tx3);margin-top:2px">{{log.timestamp.strftime('%b %d, %Y %H:%M') if log.timestamp else ''}}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="es"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><h3>No activity yet</h3></div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="ch"><span class="ct">Details</span></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.84rem">
+          <span style="color:var(--tx3)">Status</span>
+          <span class="bx {% if workflow.status=='Completed' %}b-co{% elif workflow.status=='In Progress' %}b-ip{% elif workflow.status=='Cancelled' %}b-ca{% else %}b-cr{% endif %}">{{workflow.status}}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.84rem">
+          <span style="color:var(--tx3)">Priority</span>
+          <span class="bx {% if workflow.priority=='Critical' %}b-ex{% elif workflow.priority=='High' %}b-hi{% elif workflow.priority=='Medium' %}b-me{% else %}b-lo{% endif %}">{{workflow.priority}}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.84rem">
+          <span style="color:var(--tx3)">Category</span><span style="color:var(--tx2)">{{workflow.category or '—'}}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.84rem">
+          <span style="color:var(--tx3)">Assigned to</span><span style="color:var(--tx2)">{{workflow.assignee.username if workflow.assignee else '—'}}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.84rem">
+          <span style="color:var(--tx3)">Due Date</span>
+          <span style="color:{% if workflow.is_overdue() %}var(--err){% else %}var(--tx2){% endif %}">{{workflow.due_date.strftime('%b %d, %Y') if workflow.due_date else '—'}}</span>
+        </div>
+        {% if workflow.is_overdue() %}<div style="padding:7px 10px;background:var(--err-bg);border:1px solid rgba(244,63,94,.2);border-radius:7px;font-size:.78rem;color:var(--err);text-align:center;font-weight:600">⚠ OVERDUE</div>{% endif %}
+        {% if workflow.attachment %}
+        <div style="padding-top:8px;border-top:1px solid var(--bdr)">
+          <a href="/uploads/{{workflow.attachment}}" class="btn btn-g btn-sm" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download Attachment</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <form method="POST" action="/workflow/{{workflow.id}}/delete" onsubmit="return confirm('Permanently delete this workflow?')">
+      <button type="submit" class="btn btn-d" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete Workflow</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

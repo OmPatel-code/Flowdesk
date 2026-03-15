@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{% if automation %}Edit{% else %}New{% endif %} Automation — FlowDesk{% endblock %}
+{% block page_title %}{% if automation %}Edit{% else %}New{% endif %} Automation Rule{% endblock %}
+{% block content %}
+<div class="ph"><div><h1>{% if automation %}Edit Rule{% else %}New Rule{% endif %}</h1></div><a href="/automation" class="btn btn-g btn-sm">← Back</a></div>
+<form method="POST" style="max-width:680px">
+  <div class="fs">
+    <div class="fst">Rule Settings</div>
+    <div class="fg"><label>Rule Name *</label><input type="text" name="name" class="fc" value="{{automation.name if automation else ''}}" placeholder="e.g. Auto-assign critical issues" required></div>
+    <div class="fr">
+      <div class="fg" style="margin-bottom:0"><label>Trigger Type</label>
+        <select name="trigger_type" class="fc">
+          <option value="status_change" {% if automation and automation.trigger_type=='status_change' %}selected{% endif %}>Status Change</option>
+          <option value="assignment" {% if automation and automation.trigger_type=='assignment' %}selected{% endif %}>Assignment</option>
+          <option value="due_date" {% if automation and automation.trigger_type=='due_date' %}selected{% endif %}>Due Date</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:0"><label>Action Type</label>
+        <select name="action_type" class="fc">
+          <option value="notify" {% if automation and automation.action_type=='notify' %}selected{% endif %}>Send Notification</option>
+          <option value="assign" {% if automation and automation.action_type=='assign' %}selected{% endif %}>Auto-Assign</option>
+          <option value="update_status" {% if automation and automation.action_type=='update_status' %}selected{% endif %}>Update Status</option>
+          <option value="create_subtask" {% if automation and automation.action_type=='create_subtask' %}selected{% endif %}>Create Subtask</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="fs">
+    <div class="fst">Conditions (optional)</div>
+    <div class="fr">
+      <div class="fg" style="margin-bottom:0"><label>If Status Is</label>
+        <select name="condition_status" class="fc"><option value="">— Any —</option>{% for s in statuses %}<option value="{{s}}">{{s}}</option>{% endfor %}</select>
+      </div>
+      <div class="fg" style="margin-bottom:0"><label>If Priority Is</label>
+        <select name="condition_priority" class="fc"><option value="">— Any —</option>{% for p in priorities %}<option value="{{p}}">{{p}}</option>{% endfor %}</select>
+      </div>
+    </div>
+  </div>
+  <div class="fs">
+    <div class="fst">Action Parameters</div>
+    <div class="fg"><label>Notification Message</label><input type="text" name="notify_message" class="fc" placeholder="e.g. Workflow needs attention"></div>
+    <div class="fg"><label>Assign To User</label>
+      <select name="assign_to_id" class="fc"><option value="">— Select user —</option>{% for u in users %}<option value="{{u.id}}">{{u.username}}</option>{% endfor %}</select>
+    </div>
+    <div class="fg"><label>Update to Status</label>
+      <select name="update_status" class="fc"><option value="">— Select status —</option>{% for s in statuses %}<option value="{{s}}">{{s}}</option>{% endfor %}</select>
+    </div>
+    <div class="fg" style="margin-bottom:0"><label>Subtask Title</label><input type="text" name="subtask_title" class="fc" placeholder="e.g. Review and approve"></div>
+  </div>
+  <div style="display:flex;gap:10px"><button type="submit" class="btn btn-p">{% if automation %}Save Changes{% else %}Create Rule{% endif %}</button><a href="/automation" class="btn btn-g">Cancel</a></div>
+</form>
+{% endblock %}
